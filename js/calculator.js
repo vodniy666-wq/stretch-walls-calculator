@@ -7,6 +7,7 @@ export function wallTotals(wall, priceById) {
   // Millimetre input can create floating-point tails (11.340000000002).
   // Six decimals retain sub-cm precision while keeping totals deterministic.
   const area = Math.round(width * height * 1e6) / 1e6;
+  const material = area * (priceById[wall.material]?.price || 0);
   const sideLengths = { top: width, bottom: width, left: height, right: height };
   const profiles = Object.entries(sideLengths).reduce((sum, [side, length]) => {
     return sum + length * (priceById[wall.profiles?.[side]]?.price || 0);
@@ -18,15 +19,15 @@ export function wallTotals(wall, priceById) {
     ? Math.max(0, wall.soundproof.custom ? Number(wall.soundproof.area) || 0 : area)
     : 0;
   const soundproof = soundArea * (priceById.soundproof?.price || 0);
-  return { area, profiles, extras, soundproof, total: profiles + extras + soundproof, soundArea };
+  return { area, material, profiles, extras, soundproof, total: material + profiles + extras + soundproof, soundArea };
 }
 
 export function roomTotals(room, prices) {
   return room.walls.reduce((total, wall) => {
     const value = wallTotals(wall, prices);
-    for (const key of ['area', 'profiles', 'extras', 'soundproof', 'total']) total[key] += value[key];
+    for (const key of ['area', 'material', 'profiles', 'extras', 'soundproof', 'total']) total[key] += value[key];
     return total;
-  }, { area: 0, profiles: 0, extras: 0, soundproof: 0, total: 0 });
+  }, { area: 0, material: 0, profiles: 0, extras: 0, soundproof: 0, total: 0 });
 }
 
 export function projectTotals(project, prices) {

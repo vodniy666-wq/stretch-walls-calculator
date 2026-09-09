@@ -1,4 +1,5 @@
 [
+  { "id": "material_standard", "category": "material", "name": "Полотно для натяжной стены", "unit": "м²", "price": 650 },
   { "id": "profile_corner", "category": "profile", "name": "Угловой профиль", "unit": "м", "price": 250 },
   { "id": "profile_bumper", "category": "profile", "name": "Отбойник", "unit": "м", "price": 310 },
   { "id": "profile_shadow", "category": "profile", "name": "Теневой профиль", "unit": "м", "price": 480 },
