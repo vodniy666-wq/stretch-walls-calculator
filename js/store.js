@@ -7,10 +7,10 @@ export const saveProjects = (projects) => localStorage.setItem(KEY, JSON.stringi
 
 export const makeWall = (number) => ({
   id: uid(), name: `Стена ${number}`, width: 4200, height: 2700,
-  material: 'material_standard',
-  profiles: { top: 'profile_corner', bottom: 'profile_bumper', left: 'profile_corner', right: 'profile_corner' },
-  extras: { socket: 0, inner_corner: 0, outer_corner: 0 },
-  soundproof: { enabled: false, custom: false, area: 0 }
+  material: 'material_stretch_wall',
+  profiles: { top: 'profile_basic', bottom: 'profile_basic', left: 'profile_basic', right: 'profile_basic' },
+  extras: {},
+  soundproof: { id: '', custom: false, area: 0 }
 });
 export const makeRoom = (number) => ({ id: uid(), name: `Комната ${number}`, walls: [] });
 export const makeProject = (details = {}) => ({
