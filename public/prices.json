@@ -1,0 +1,10 @@
+[
+  {"id":"profile_corner","category":"profile","name":"Угловой профиль","unit":"м","price":250},
+  {"id":"profile_bumper","category":"profile","name":"Профиль-отбойник","unit":"м","price":320},
+  {"id":"profile_shadow","category":"profile","name":"Теневой профиль","unit":"м","price":410},
+  {"id":"wall_canvas","category":"service","name":"Полотно и монтаж","unit":"м²","price":490},
+  {"id":"socket","category":"extra","name":"Подрозетник / выключатель","unit":"шт","price":450},
+  {"id":"inner_corner","category":"extra","name":"Внутренний угол","unit":"шт","price":650},
+  {"id":"outer_corner","category":"extra","name":"Внешний угол","unit":"шт","price":850},
+  {"id":"soundproof","category":"soundproof","name":"Звукоизоляция","unit":"м²","price":780}
+]
