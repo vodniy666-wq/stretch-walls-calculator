@@ -1,4 +1,4 @@
-export const money = (value) => `${Math.round(value).toLocaleString('ru-RU')} ₽`;
+export const money = (value) => `${Number(value).toLocaleString('ru-RU', { maximumFractionDigits: 2 })} ₽`;
 export const square = (value) => `${Number(value).toLocaleString('ru-RU', { maximumFractionDigits: 2 })} м²`;
 
 export function wallTotals(wall, priceById) {
@@ -12,13 +12,16 @@ export function wallTotals(wall, priceById) {
   const profiles = Object.entries(sideLengths).reduce((sum, [side, length]) => {
     return sum + length * (priceById[wall.profiles?.[side]]?.price || 0);
   }, 0);
-  const extras = ['socket', 'inner_corner', 'outer_corner'].reduce((sum, id) => {
-    return sum + Math.max(0, Number(wall.extras?.[id]) || 0) * (priceById[id]?.price || 0);
+  const extras = Object.entries(wall.extras || {}).reduce((sum, [id, quantity]) => {
+    if (priceById[id]?.category !== 'extra') return sum;
+    return sum + Math.max(0, Number(quantity) || 0) * (priceById[id]?.price || 0);
   }, 0);
-  const soundArea = wall.soundproof?.enabled
+  // The fallback keeps calculations made with the previous on/off control usable.
+  const soundproofId = wall.soundproof?.id || (wall.soundproof?.enabled ? 'soundproof_heavy_felt' : '');
+  const soundArea = soundproofId
     ? Math.max(0, wall.soundproof.custom ? Number(wall.soundproof.area) || 0 : area)
     : 0;
-  const soundproof = soundArea * (priceById.soundproof?.price || 0);
+  const soundproof = soundArea * (priceById[soundproofId]?.price || 0);
   return { area, material, profiles, extras, soundproof, total: material + profiles + extras + soundproof, soundArea };
 }
 

@@ -1,10 +1,19 @@
 [
-  { "id": "material_standard", "category": "material", "name": "Полотно для натяжной стены", "unit": "м²", "price": 650 },
-  { "id": "profile_corner", "category": "profile", "name": "Угловой профиль", "unit": "м", "price": 250 },
-  { "id": "profile_bumper", "category": "profile", "name": "Отбойник", "unit": "м", "price": 310 },
-  { "id": "profile_shadow", "category": "profile", "name": "Теневой профиль", "unit": "м", "price": 480 },
-  { "id": "socket", "category": "extra", "name": "Подрозетник / выключатель", "unit": "шт.", "price": 450 },
-  { "id": "inner_corner", "category": "extra", "name": "Внутренний угол", "unit": "шт.", "price": 600 },
-  { "id": "outer_corner", "category": "extra", "name": "Внешний угол", "unit": "шт.", "price": 850 },
-  { "id": "soundproof", "category": "soundproof", "name": "Звукоизоляция", "unit": "м²", "price": 1200 }
+  { "id": "material_stretch_wall", "category": "material", "name": "Натяжные стены", "unit": "м²", "price": 361 },
+  { "id": "profile_basic", "category": "profile", "name": "Базовый профиль", "unit": "м", "price": 262.5 },
+  { "id": "profile_inner_corner", "category": "profile", "name": "Внутренний угол профиль", "unit": "м", "price": 342.5 },
+  { "id": "profile_outer_corner", "category": "profile", "name": "Внешний угол профиль", "unit": "м", "price": 371.5 },
+  { "id": "profile_shadow", "category": "profile", "name": "Теневой профиль", "unit": "м", "price": 432 },
+  { "id": "profile_ceiling", "category": "profile", "name": "Потолочный профиль", "unit": "м", "price": 535 },
+  { "id": "profile_divider", "category": "profile", "name": "Разделительный профиль", "unit": "м", "price": 375 },
+  { "id": "socket_type_1", "category": "extra", "name": "Закладная для подрозетников Тип 1", "unit": "шт.", "price": 368 },
+  { "id": "socket_type_2", "category": "extra", "name": "Закладная для подрозетников Тип 2", "unit": "шт.", "price": 368 },
+  { "id": "socket_type_3", "category": "extra", "name": "Закладная для подрозетников Тип 3", "unit": "шт.", "price": 368 },
+  { "id": "adhesive_contact_5kg", "category": "extra", "name": "Тонлос контактный клей 5 кг", "unit": "шт.", "price": 3686 },
+  { "id": "adhesive_spray_650ml", "category": "extra", "name": "Тонлос контактный спрей Ad-Hesive 650 мл", "unit": "шт.", "price": 957 },
+  { "id": "washer_pack_50", "category": "extra", "name": "Тонлос шайба (рондоль), упаковка 50 шт", "unit": "упак.", "price": 137 },
+  { "id": "hf_band", "category": "extra", "name": "Тонлос лента HF BAND", "unit": "шт.", "price": 798 },
+  { "id": "soundproof_heavy_felt", "category": "soundproof", "name": "TÖNLOS HEAVY FELT", "unit": "м²", "price": 2200 },
+  { "id": "soundproof_acoustic_felt", "category": "soundproof", "name": "TÖNLOS ACOUSTIC FELT", "unit": "м²", "price": 1024 },
+  { "id": "soundproof_softlight_15", "category": "soundproof", "name": "SoftLight 15 мм", "unit": "м²", "price": 153 }
 ]

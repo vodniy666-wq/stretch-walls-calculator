@@ -15,14 +15,20 @@ test('gets profile names from the supplied price data', () => {
   assert.match(drawing, /Низ · Без профиля/);
 });
 
-test('shows the saved number of sockets using the price name', () => {
+test('shows each saved socket type using its price name', () => {
   const drawing = wallDrawing({
     width: 3000,
     height: 2500,
     profiles: {},
-    extras: { socket: 3 }
-  }, { socket: { name: 'Элемент из прайса' } });
+    extras: { socket_type_1: 2, socket_type_3: 1, adhesive_contact_5kg: 4 }
+  }, {
+    socket_type_1: { name: 'Закладная Тип 1' },
+    socket_type_3: { name: 'Закладная Тип 3' },
+    adhesive_contact_5kg: { name: 'Клей' }
+  });
 
   assert.equal((drawing.match(/class="drawing-socket"/g) || []).length, 3);
-  assert.match(drawing, /Элемент из прайса · 3 шт\./);
+  assert.match(drawing, /Закладная Тип 1 · 2 шт\./);
+  assert.match(drawing, /Закладная Тип 3 · 1 шт\./);
+  assert.doesNotMatch(drawing, /Клей/);
 });
