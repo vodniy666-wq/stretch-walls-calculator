@@ -14,14 +14,23 @@ test('browser assets use repository-relative URLs', async () => {
   assert.doesNotMatch(html, /(?:href|src)="\//);
 });
 
-test('main banner is included on the home screen and every inner page', async () => {
+test('main banner is included only on the home and top-level screens', async () => {
   const app = await readFile(new URL('../js/app.js', import.meta.url), 'utf8');
+  const renderer = name => {
+    const start = app.indexOf(`function ${name}`);
+    const end = app.indexOf('\nfunction ', start + 1);
+    return app.slice(start, end < 0 ? app.length : end);
+  };
   const pageHelper = app.slice(app.indexOf('const page ='), app.indexOf('function renderHome'));
-  const homeRenderer = app.slice(app.indexOf('function renderHome'), app.indexOf('function renderNew'));
 
   assert.match(app, /const heroBanner = \(\) => `<section class="hero">/);
-  assert.match(pageHelper, /heroBanner\(\)/);
-  assert.match(homeRenderer, /heroBanner\(\)/);
+  assert.doesNotMatch(pageHelper, /heroBanner\(\)/);
+  for (const name of ['renderHome', 'renderNew', 'renderSaved', 'renderPrice']) {
+    assert.match(renderer(name), /heroBanner\(\)/, `${name} should render the banner`);
+  }
+  for (const name of ['renderProject', 'renderRoom', 'renderWall']) {
+    assert.doesNotMatch(renderer(name), /heroBanner\(\)/, `${name} should not render the banner`);
+  }
 });
 
 test('wall drawing follows the socket section in the editor', async () => {
