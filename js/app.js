@@ -1,4 +1,4 @@
-import { money, square, wallTotals, roomTotals, projectTotals } from './calculator.js';
+import { money, square, wallTotals, roomTotals, projectTotals, projectEstimate } from './calculator.js';
 import { loadProjects, saveProjects, makeProject, makeRoom, makeWall, uid } from './store.js';
 import { syncSocketPositions, wallDrawing } from './drawing.js';
 
@@ -83,7 +83,9 @@ function renderProject(project) {
   if (!project) return go('saved');
   current = project; saveButton.classList.remove('hidden');
   const totals = projectTotals(project, priceById);
-  app.innerHTML = page('Объект', project.name, `<div class="client-line">${project.client ? `<span>Клиент: <b>${esc(project.client)}</b></span>` : ''}${project.phone ? `<span>${esc(project.phone)}</span>` : ''}<button class="text-button" data-action="edit-project">Изменить</button></div><section class="section-head"><div><h2>Комнаты</h2><p>${project.rooms.length} ${project.rooms.length === 1 ? 'комната' : 'комнат'}</p></div><button class="secondary" data-action="add-room">＋ Добавить</button></section><div class="card-list">${project.rooms.length ? project.rooms.map(room => roomCard(project, room)).join('') : empty('Здесь появятся комнаты', 'Добавьте первую комнату, затем стены и материалы.')}</div><section class="total-panel"><p>Итог по объекту</p><div><span>Общая площадь</span><b>${square(totals.area)}</b></div><strong>${money(totals.total)}</strong></section>`, 'home');
+  const estimate = projectEstimate(project, priceById);
+  const estimateContent = estimate.groups.map(group => `<section class="estimate-group"><h3>${group.name}</h3>${group.rows.length ? group.rows.map(row => `<div class="estimate-row"><div class="estimate-name"><b>${esc(row.name)}</b><small>${Number(row.quantity).toLocaleString('ru-RU', { maximumFractionDigits: 2 })} ${esc(row.unit)} × ${money(row.unitPrice)}</small></div><strong>${money(row.total)}</strong></div>`).join('') : '<p class="estimate-empty">Нет позиций</p>'}</section>`).join('');
+  app.innerHTML = page('Объект', project.name, `<div class="client-line">${project.client ? `<span>Клиент: <b>${esc(project.client)}</b></span>` : ''}${project.phone ? `<span>${esc(project.phone)}</span>` : ''}<button class="text-button" data-action="edit-project">Изменить</button></div><section class="section-head"><div><h2>Комнаты</h2><p>${project.rooms.length} ${project.rooms.length === 1 ? 'комната' : 'комнат'}</p></div><button class="secondary" data-action="add-room">＋ Добавить</button></section><div class="card-list">${project.rooms.length ? project.rooms.map(room => roomCard(project, room)).join('') : empty('Здесь появятся комнаты', 'Добавьте первую комнату, затем стены и материалы.')}</div><details class="estimate"><summary><div><h2>Смета / Комплектация</h2><p>${estimate.groups.reduce((sum, group) => sum + group.rows.length, 0)} позиций</p></div><span>⌄</span></summary><div class="estimate-content">${estimateContent}<div class="estimate-total"><span>Итого по смете</span><strong>${money(estimate.total)}</strong></div></div></details><section class="total-panel"><p>Итог по объекту</p><div><span>Общая площадь</span><b>${square(totals.area)}</b></div><strong>${money(totals.total)}</strong></section>`, 'home');
 }
 
 function wallCard(project, room, wall) {

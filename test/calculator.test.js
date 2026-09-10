@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { wallTotals, roomTotals, projectTotals, money } from '../js/calculator.js';
+import { wallTotals, roomTotals, projectTotals, projectEstimate, money } from '../js/calculator.js';
 
 const priceList = JSON.parse(await readFile(new URL('../data/prices.json', import.meta.url), 'utf8'));
 const prices = Object.fromEntries(priceList.map(item => [item.id, item]));
@@ -65,4 +65,33 @@ test('keeps the legacy enabled soundproof setting calculable', () => {
 test('formats fractional prices without rounding them to whole rubles', () => {
   assert.equal(money(262.5), '262,5 ₽');
   assert.equal(money(371.55), '371,55 ₽');
+});
+
+test('groups estimate positions by id across rooms and walls in the required order', () => {
+  const secondWall = structuredClone(wall);
+  secondWall.width = 3000;
+  secondWall.height = 2000;
+  secondWall.profiles = { top: 'profile_basic', bottom: 'profile_basic', left: '', right: '' };
+  secondWall.extras = { socket_type_1: 2, adhesive_contact_5kg: 1 };
+  secondWall.soundproof = { id: 'soundproof_acoustic_felt', custom: true, area: 2.75 };
+  const estimate = projectEstimate({ rooms: [{ walls: [wall] }, { walls: [secondWall] }] }, prices);
+
+  assert.deepEqual(estimate.groups.map(group => group.name), [
+    'Материал', 'Профили', 'Подрозетники / закладные', 'Звукоизоляция', 'Дополнительные расходники'
+  ]);
+  const rows = Object.fromEntries(estimate.groups.flatMap(group => group.rows).map(row => [row.id, row]));
+  assert.equal(rows.material_stretch_wall.quantity, 17.34);
+  assert.equal(rows.profile_basic.quantity, 10.2);
+  assert.equal(rows.socket_type_1.quantity, 3);
+  assert.equal(rows.soundproof_acoustic_felt.quantity, 14.09);
+  assert.equal(rows.adhesive_contact_5kg.quantity, 3);
+  assert.equal(estimate.groups.flatMap(group => group.rows).filter(row => row.id === 'profile_basic').length, 1);
+});
+
+test('estimate row totals add up to the project total', () => {
+  const project = { rooms: [{ walls: [wall, structuredClone(wall)] }, { walls: [structuredClone(wall)] }] };
+  const estimate = projectEstimate(project, prices);
+  const rowTotal = estimate.groups.flatMap(group => group.rows).reduce((sum, row) => sum + row.total, 0);
+  assert.equal(estimate.total, rowTotal);
+  assert.equal(estimate.total, projectTotals(project, prices).total);
 });
