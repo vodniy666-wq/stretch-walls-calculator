@@ -33,3 +33,14 @@ test('every priced profile has its own valid drawing color', async () => {
   assert.ok(profileColors.every(color => /^#[\da-f]{6}$/i.test(color)));
   assert.equal(new Set(profileColors).size, profileColors.length);
 });
+
+test('wall input events synchronize data without rebuilding the active form', async () => {
+  const app = await readFile(new URL('../js/app.js', import.meta.url), 'utf8');
+  const inputHandler = app.slice(app.indexOf('function syncWallInput'), app.indexOf('function commitWallInput'));
+
+  assert.match(app, /addEventListener\('input', syncWallInput\)/);
+  assert.match(app, /addEventListener\('change', commitWallInput\)/);
+  assert.match(inputHandler, /syncWallForm\(wall\)/);
+  assert.match(inputHandler, /persist\(\)/);
+  assert.doesNotMatch(inputHandler, /renderWall|innerHTML|setSelectionRange/);
+});
