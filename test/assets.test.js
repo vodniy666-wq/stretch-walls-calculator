@@ -14,7 +14,7 @@ test('browser assets use repository-relative URLs', async () => {
   assert.doesNotMatch(html, /(?:href|src)="\//);
 });
 
-test('main banner is included only on the home and top-level screens', async () => {
+test('main banner is included on every application screen through the shared template', async () => {
   const app = await readFile(new URL('../js/app.js', import.meta.url), 'utf8');
   const renderer = name => {
     const start = app.indexOf(`function ${name}`);
@@ -24,13 +24,21 @@ test('main banner is included only on the home and top-level screens', async () 
   const pageHelper = app.slice(app.indexOf('const page ='), app.indexOf('function renderHome'));
 
   assert.match(app, /const heroBanner = \(\) => `<section class="hero">/);
-  assert.doesNotMatch(pageHelper, /heroBanner\(\)/);
-  for (const name of ['renderHome', 'renderNew', 'renderSaved', 'renderPrice']) {
-    assert.match(renderer(name), /heroBanner\(\)/, `${name} should render the banner`);
+  assert.match(pageHelper, /const page = .*heroBanner\(\)/s);
+  assert.match(renderer('renderHome'), /heroBanner\(\)/, 'renderHome should render the banner');
+  for (const name of ['renderNew', 'renderSaved', 'renderPrice', 'renderProject', 'renderRoom', 'renderWall']) {
+    assert.match(renderer(name), /app\.innerHTML = page\(/, `${name} should render the shared page with its banner`);
   }
-  for (const name of ['renderProject', 'renderRoom', 'renderWall']) {
-    assert.doesNotMatch(renderer(name), /heroBanner\(\)/, `${name} should not render the banner`);
-  }
+});
+
+test('main banner has a compact mobile layout', async () => {
+  const css = await readFile(new URL('../styles.css', import.meta.url), 'utf8');
+  const mobileTheme = css.slice(css.lastIndexOf('@media(max-width:700px)'));
+
+  assert.match(mobileTheme, /\.hero\{height:210px;min-height:0;/);
+  assert.match(mobileTheme, /\.hero h1\{font-size:28px;/);
+  assert.match(mobileTheme, /\.hero\+\.page,\.hero\+\.home-grid\{margin-top:18px\}/);
+  assert.match(mobileTheme, /\.lead\{margin-top:11px;font-size:12px;/);
 });
 
 test('wall drawing follows the socket section in the editor', async () => {
