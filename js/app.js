@@ -61,12 +61,13 @@ const persist = (message) => {
   saveProjects(projects);
   if (message) showToast(message);
 };
-const page = (eyebrow, title, content, back = '') => `<div class="page">
+const heroBanner = () => `<section class="hero"><div><p class="eyebrow">Калькулятор натяжных стен</p><h1>Смета без<br><em>лишних движений</em></h1><p class="lead">Комнаты, стены и материалы — в понятном расчёте, который всегда под рукой.</p></div></section>`;
+const page = (eyebrow, title, content, back = '') => `${heroBanner()}<div class="page">
   <div class="page-heading">${back ? `<button class="back" data-go="${back}">←</button>` : ''}<div><p class="eyebrow">${eyebrow}</p><h1>${esc(title)}</h1></div></div>${content}</div>`;
 
 function renderHome() {
   current = null; saveButton.classList.add('hidden');
-  app.innerHTML = `<section class="hero"><div><p class="eyebrow">Калькулятор натяжных стен</p><h1>Смета без<br><em>лишних движений</em></h1><p class="lead">Комнаты, стены и материалы — в понятном расчёте, который всегда под рукой.</p></div></section>
+  app.innerHTML = `${heroBanner()}
   <section class="home-grid"><button class="menu-card" data-action="new"><span class="menu-icon accent">＋</span><span><b>Новый расчёт</b><small>Создать объект с нуля</small></span><i>→</i></button><button class="menu-card" data-go="saved"><span class="menu-icon">▤</span><span><b>Сохранённые</b><small>${projects.length} ${projects.length === 1 ? 'расчёт' : 'расчётов'}</small></span><i>→</i></button><button class="menu-card" data-go="price"><span class="menu-icon">₽</span><span><b>Прайс</b><small>${prices.length} позиций</small></span><i>→</i></button></section>`;
 }
 

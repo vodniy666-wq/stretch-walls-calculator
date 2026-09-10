@@ -14,6 +14,16 @@ test('browser assets use repository-relative URLs', async () => {
   assert.doesNotMatch(html, /(?:href|src)="\//);
 });
 
+test('main banner is included on the home screen and every inner page', async () => {
+  const app = await readFile(new URL('../js/app.js', import.meta.url), 'utf8');
+  const pageHelper = app.slice(app.indexOf('const page ='), app.indexOf('function renderHome'));
+  const homeRenderer = app.slice(app.indexOf('function renderHome'), app.indexOf('function renderNew'));
+
+  assert.match(app, /const heroBanner = \(\) => `<section class="hero">/);
+  assert.match(pageHelper, /heroBanner\(\)/);
+  assert.match(homeRenderer, /heroBanner\(\)/);
+});
+
 test('wall drawing follows the socket section in the editor', async () => {
   const app = await readFile(new URL('../js/app.js', import.meta.url), 'utf8');
   const sockets = app.indexOf("sectionTitle('04', 'Подрозетники / закладные'");
