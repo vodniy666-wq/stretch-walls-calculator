@@ -28,6 +28,19 @@ export function syncSocketPositions(wall, socketIds) {
 
 const shortSocketName = (name, id) => name?.match(/тип\s*\d+/i)?.[0] || name || id;
 
+const fallbackProfileColor = (id) => {
+  let hash = 0;
+  for (const character of id) hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
+  return `hsl(${hash % 360} 62% 42%)`;
+};
+
+const profileColor = (id, priceById) => {
+  if (!id) return '#cbd1ca';
+  const priceColor = priceById[id]?.color;
+  return /^#[\da-f]{6}$/i.test(priceColor || '') ? priceColor : fallbackProfileColor(id);
+};
+const sideLabels = { top: 'Верх', bottom: 'Низ', left: 'Слева', right: 'Справа' };
+
 export function wallDrawing(wall, priceById) {
   const width = Math.max(1, Number(wall.width));
   const height = Math.max(1, Number(wall.height));
@@ -36,7 +49,8 @@ export function wallDrawing(wall, priceById) {
   const boxHeight = ratio >= 1 ? 260 / ratio : 180;
   const p = wall.profiles || {};
   const profile = (side) => priceById[p[side]]?.name || 'Без профиля';
-  const cls = (side) => p[side] ? `line ${p[side]}` : 'line none';
+  const profileLine = (side) => `<span class="line ${p[side] ? '' : 'none '}${side}" style="--profile-color:${profileColor(p[side], priceById)}" title="${sideLabels[side]}: ${profile(side)}"></span>`;
+  const profileLegend = (side) => `<span><i class="profile-swatch" style="--profile-color:${profileColor(p[side], priceById)}"></i>${sideLabels[side]} · ${profile(side)}</span>`;
   const socketsByType = Object.entries(wall.extras || {}).filter(([id, quantity]) =>
     id.startsWith('socket_type_') && Math.max(0, Math.floor(Number(quantity) || 0)) > 0
   );
@@ -52,13 +66,13 @@ export function wallDrawing(wall, priceById) {
     <div class="drawing" style="--w:${boxWidth}px;--h:${boxHeight}px">
       <span class="dimension top-dim">${width.toLocaleString('ru-RU')} мм</span>
       <span class="dimension side-dim">${height.toLocaleString('ru-RU')} мм</span>
-      <span class="${cls('top')} top" title="Верх: ${profile('top')}"></span>
-      <span class="${cls('bottom')} bottom" title="Низ: ${profile('bottom')}"></span>
-      <span class="${cls('left')} left" title="Слева: ${profile('left')}"></span>
-      <span class="${cls('right')} right" title="Справа: ${profile('right')}"></span>
+      ${profileLine('top')}
+      ${profileLine('bottom')}
+      ${profileLine('left')}
+      ${profileLine('right')}
       ${socketCount ? `<div class="drawing-extras" aria-label="Подрозетники: ${socketCount}">${sockets}</div>` : ''}
     </div>
-    <div class="drawing-legend"><span>Верх · ${profile('top')}</span><span>Низ · ${profile('bottom')}</span><span>Слева · ${profile('left')}</span><span>Справа · ${profile('right')}</span></div>
+    <div class="drawing-legend">${['top', 'bottom', 'left', 'right'].map(profileLegend).join('')}</div>
     ${socketsByType.map(([id, quantity]) => `<p class="drawing-extra-legend">${priceById[id]?.name || id} · ${Math.max(0, Math.floor(Number(quantity) || 0))} шт.</p>`).join('')}
   </section>`;
 }
