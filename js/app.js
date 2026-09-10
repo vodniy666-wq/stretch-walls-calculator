@@ -9,7 +9,6 @@ let prices = [];
 let priceById = {};
 let projects = loadProjects();
 let current = null;
-let wallRenderTimer = null;
 
 function migrateLegacyWalls() {
   let changed = false;
@@ -107,7 +106,7 @@ const soundproofOptions = (selected) => `<option value="">Без звукоиз�
 function counter(item, value) { return `<div class="counter-row"><div><b>${esc(item.name)}</b><small>${money(item.price)} / ${esc(item.unit)}</small></div><div class="counter"><button type="button" data-count="${item.id}" data-step="-1">−</button><input aria-label="${esc(item.name)}" name="${item.id}" type="number" min="0" value="${value || 0}"><button type="button" data-count="${item.id}" data-step="1">＋</button></div></div>`; }
 
 function socketPositionFields(wall, item) {
-  return (wall.socketPositions?.[item.id] || []).map((position, index) => `<fieldset class="socket-position"><legend>${esc(item.name)} · ${index + 1}</legend><div class="two-columns"><label>От левого края, мм<input aria-label="${esc(item.name)} ${index + 1}, от левого края" name="socket-position-${item.id}-${index}-left" type="number" inputmode="numeric" min="0" value="${position.left}"></label><label>От пола, мм<input aria-label="${esc(item.name)} ${index + 1}, от пола" name="socket-position-${item.id}-${index}-floor" type="number" inputmode="numeric" min="0" value="${position.floor}"></label></div></fieldset>`).join('');
+  return `<div data-socket-positions="${item.id}">${(wall.socketPositions?.[item.id] || []).map((position, index) => `<fieldset class="socket-position"><legend>${esc(item.name)} · ${index + 1}</legend><div class="two-columns"><label>От левого края, мм<input aria-label="${esc(item.name)} ${index + 1}, от левого края" name="socket-position-${item.id}-${index}-left" type="number" inputmode="numeric" min="0" value="${position.left}"></label><label>От пола, мм<input aria-label="${esc(item.name)} ${index + 1}, от пола" name="socket-position-${item.id}-${index}-floor" type="number" inputmode="numeric" min="0" value="${position.floor}"></label></div></fieldset>`).join('')}</div>`;
 }
 
 function renderWall(project, room, wall) {
@@ -124,13 +123,13 @@ function renderWall(project, room, wall) {
   const sectionTitle = (number, title, hint) => `<div class="editor-title"><span>${number}</span><div><h2>${title}</h2>${hint ? `<p>${hint}</p>` : ''}</div></div>`;
   app.innerHTML = page(room.name, wall.name, `<form id="wallForm">
     <section class="editor-card">${sectionTitle('01', 'Размеры стены', 'Площадь рассчитывается автоматически')}<label>Название стены<input name="name" value="${esc(wall.name)}"></label><div class="two-columns"><label>Ширина, мм<input name="width" type="number" inputmode="numeric" min="1" value="${wall.width}"></label><label>Высота, мм<input name="height" type="number" inputmode="numeric" min="1" value="${wall.height}"></label></div></section>
-    <section class="editor-card">${sectionTitle('02', 'Материал')}<input type="hidden" name="material" value="${esc(wall.material)}"><div class="material-summary"><div><b>${esc(material?.name || 'Материал не выбран')}</b><small>${square(totals.area)} · ${material ? `${money(material.price)} / м²` : 'нет цены'}</small></div><strong>${money(totals.material)}</strong></div></section>
-    <section class="editor-card">${sectionTitle('03', 'Профили', 'Отдельно для каждой стороны')}<div class="profile-grid">${[['top','Верх'],['bottom','Низ'],['left','Слева'],['right','Справа']].map(([id,label]) => `<label>${label}<small>${id === 'top' || id === 'bottom' ? (wall.width/1000).toLocaleString('ru-RU') : (wall.height/1000).toLocaleString('ru-RU')} м</small><select name="profile-${id}">${profileOptions(wall.profiles?.[id])}</select></label>`).join('')}</div></section>
+    <section class="editor-card">${sectionTitle('02', 'Материал')}<input type="hidden" name="material" value="${esc(wall.material)}"><div class="material-summary"><div><b>${esc(material?.name || 'Материал не выбран')}</b><small data-wall-material-area>${square(totals.area)} · ${material ? `${money(material.price)} / м²` : 'нет цены'}</small></div><strong data-wall-material-total>${money(totals.material)}</strong></div></section>
+    <section class="editor-card">${sectionTitle('03', 'Профили', 'Отдельно для каждой стороны')}<div class="profile-grid">${[['top','Верх'],['bottom','Низ'],['left','Слева'],['right','Справа']].map(([id,label]) => `<label>${label}<small data-profile-length="${id}">${id === 'top' || id === 'bottom' ? (wall.width/1000).toLocaleString('ru-RU') : (wall.height/1000).toLocaleString('ru-RU')} м</small><select name="profile-${id}">${profileOptions(wall.profiles?.[id])}</select></label>`).join('')}</div></section>
     <section class="editor-card">${sectionTitle('04', 'Подрозетники / закладные', 'Количество и положение каждого экземпляра')}<div class="compact-counters">${socketItems.map(item => `${counter(item, wall.extras?.[item.id])}${socketPositionFields(wall, item)}`).join('')}</div></section>
-    <section class="editor-card">${sectionTitle('05', 'Чертёж', 'Схематичный вид стены спереди')}${wallDrawing(wall, priceById)}</section>
-    <section class="editor-card">${sectionTitle('06', 'Звукоизоляция')}<div class="sound-row"><label>Тип звукоизоляции<small>${selectedSoundproof ? `${square(totals.soundArea)} · ${money(totals.soundproof)}` : 'Не выбрана'}</small><select name="soundproof">${soundproofOptions(selectedSoundproof)}</select></label><div class="sound-options ${selectedSoundproof ? '' : 'hidden'}"><label class="check"><input name="sound-custom" type="checkbox" ${wall.soundproof?.custom ? 'checked' : ''}> Указать площадь вручную</label><label class="sound-area ${wall.soundproof?.custom ? '' : 'hidden'}">Площадь, м²<input name="sound-area" type="number" min="0" step="0.01" value="${wall.soundproof?.area || totals.area.toFixed(2)}"></label></div></div></section>
+    <section class="editor-card">${sectionTitle('05', 'Чертёж', 'Схематичный вид стены спереди')}<div data-wall-drawing>${wallDrawing(wall, priceById)}</div></section>
+    <section class="editor-card">${sectionTitle('06', 'Звукоизоляция')}<div class="sound-row"><label>Тип звукоизоляции<small data-sound-summary>${selectedSoundproof ? `${square(totals.soundArea)} · ${money(totals.soundproof)}` : 'Не выбрана'}</small><select name="soundproof">${soundproofOptions(selectedSoundproof)}</select></label><div class="sound-options ${selectedSoundproof ? '' : 'hidden'}"><label class="check"><input name="sound-custom" type="checkbox" ${wall.soundproof?.custom ? 'checked' : ''}> Указать площадь вручную</label><label class="sound-area ${wall.soundproof?.custom ? '' : 'hidden'}">Площадь, м²<input name="sound-area" type="number" min="0" step="0.01" value="${wall.soundproof?.area || totals.area.toFixed(2)}"></label></div></div></section>
     <details class="editor-card consumables" id="consumablesBlock"><summary><div>${sectionTitle('07', 'Дополнительные расходники', 'Клей, лента и крепёж')}</div><span class="details-arrow">⌄</span></summary>${activeConsumables.length ? `<div class="active-consumables" aria-label="Выбранные расходники">${activeConsumables.map(item => `<span>${esc(item.name)}: <b>${Number(wall.extras[item.id]).toLocaleString('ru-RU')}</b></span>`).join('')}</div>` : '<p class="no-consumables">Ничего не добавлено</p>'}<div class="consumable-rows">${consumables.map(item => counter(item, wall.extras?.[item.id])).join('')}</div></details>
-    <section class="wall-total"><div><small>Итог стоимости стены</small><b>${money(totals.total)}</b><span>${square(totals.area)}</span></div><button type="button" class="primary" data-action="done-wall">Готово</button></section>
+    <section class="wall-total"><div><small>Итог стоимости стены</small><b data-wall-total>${money(totals.total)}</b><span data-wall-area>${square(totals.area)}</span></div><button type="button" class="primary" data-action="done-wall">Готово</button></section>
   </form>`, `project/${project.id}/${room.id}`);
 }
 
@@ -180,13 +179,9 @@ app.addEventListener('click', event => {
   if (action === 'delete-project') { const item = findProject(target.dataset.id); if (confirm(`Удалить расчёт «${item.name}»?`)) { projects = projects.filter(p => p.id !== item.id); saveProjects(projects); render(); } return; }
   if (target.dataset.count) {
     const input = app.querySelector(`[name="${target.dataset.count}"]`);
-    const consumablesOpen = Boolean(app.querySelector('#consumablesBlock')?.open);
     input.value = Math.max(0, Number(input.value) + Number(target.dataset.step));
     input.dispatchEvent(new Event('input', { bubbles: true }));
-    const context = getContext();
-    clearTimeout(wallRenderTimer);
-    renderWall(context.project, context.room, context.wall);
-    if (consumablesOpen) app.querySelector('#consumablesBlock')?.setAttribute('open', '');
+    updateWallStructure(input);
   }
 });
 
@@ -214,21 +209,44 @@ function syncWallInput(event) {
   const { wall } = getContext();
   syncWallForm(wall);
   persist();
+  updateWallDependents(wall);
 }
 
 function commitWallInput(event) {
   if (!event.target.closest('#wallForm')) return;
-  const context = getContext();
-  syncWallForm(context.wall);
+  const { wall } = getContext();
+  syncWallForm(wall);
   persist();
-  const consumablesOpen = Boolean(app.querySelector('#consumablesBlock')?.open);
-  clearTimeout(wallRenderTimer);
-  wallRenderTimer = setTimeout(() => {
-    const latest = getContext();
-    if (latest.wall !== context.wall) return;
-    renderWall(latest.project, latest.room, latest.wall);
-    if (consumablesOpen) app.querySelector('#consumablesBlock')?.setAttribute('open', '');
-  }, 0);
+  updateWallDependents(wall);
+  updateWallStructure(event.target);
+}
+
+function updateWallDependents(wall) {
+  const totals = wallTotals(wall, priceById);
+  const material = priceById[wall.material];
+  const selectedSoundproof = wall.soundproof?.id || '';
+  const setText = (selector, value) => { const element = app.querySelector(selector); if (element) element.textContent = value; };
+  setText('[data-wall-material-area]', `${square(totals.area)} · ${material ? `${money(material.price)} / м²` : 'нет цены'}`);
+  setText('[data-wall-material-total]', money(totals.material));
+  for (const side of ['top', 'bottom']) setText(`[data-profile-length="${side}"]`, `${(wall.width / 1000).toLocaleString('ru-RU')} м`);
+  for (const side of ['left', 'right']) setText(`[data-profile-length="${side}"]`, `${(wall.height / 1000).toLocaleString('ru-RU')} м`);
+  setText('[data-sound-summary]', selectedSoundproof ? `${square(totals.soundArea)} · ${money(totals.soundproof)}` : 'Не выбрана');
+  setText('[data-wall-total]', money(totals.total));
+  setText('[data-wall-area]', square(totals.area));
+  const drawing = app.querySelector('[data-wall-drawing]');
+  if (drawing) drawing.innerHTML = wallDrawing(wall, priceById);
+
+  const soundOptions = app.querySelector('.sound-options');
+  soundOptions?.classList.toggle('hidden', !selectedSoundproof);
+  app.querySelector('.sound-area')?.classList.toggle('hidden', !wall.soundproof?.custom);
+}
+
+function updateWallStructure(target) {
+  if (!target.name?.startsWith('socket_')) return;
+  const { wall } = getContext();
+  const item = prices.find(candidate => candidate.id === target.name);
+  const positions = app.querySelector(`[data-socket-positions="${target.name}"]`);
+  if (item && positions) positions.innerHTML = socketPositionFields(wall, item).replace(/^<div[^>]*>|<\/div>$/g, '');
 }
 
 app.addEventListener('input', syncWallInput);

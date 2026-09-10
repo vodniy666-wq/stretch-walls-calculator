@@ -52,5 +52,12 @@ test('wall input events synchronize data without rebuilding the active form', as
   assert.match(app, /addEventListener\('change', commitWallInput\)/);
   assert.match(inputHandler, /syncWallForm\(wall\)/);
   assert.match(inputHandler, /persist\(\)/);
-  assert.doesNotMatch(inputHandler, /renderWall|innerHTML|setSelectionRange/);
+  assert.match(inputHandler, /updateWallDependents\(wall\)/);
+  assert.doesNotMatch(inputHandler, /renderWall|app\.innerHTML|setSelectionRange|focus\(/);
+});
+
+test('wall form fields explicitly use left-to-right input direction', async () => {
+  const css = await readFile(new URL('../styles.css', import.meta.url), 'utf8');
+
+  assert.match(css, /input,textarea\{direction:ltr\}/);
 });
