@@ -1,3 +1,33 @@
+const socketQuantity = (value) => Math.max(0, Math.floor(Number(value) || 0));
+
+const defaultSocketPosition = (wall, index) => ({
+  left: Math.round(Math.max(1, Number(wall.width)) * ((index % 4) + 1) / 5),
+  floor: Math.round(Math.max(1, Number(wall.height)) * Math.min(.25 + Math.floor(index / 4) * .2, .8))
+});
+
+export function syncSocketPositions(wall, socketIds) {
+  const previous = wall.socketPositions && typeof wall.socketPositions === 'object' ? wall.socketPositions : {};
+  const next = {};
+  let ordinal = 0;
+  for (const id of socketIds) {
+    const quantity = socketQuantity(wall.extras?.[id]);
+    if (!quantity) continue;
+    const saved = Array.isArray(previous[id]) ? previous[id] : [];
+    next[id] = Array.from({ length: quantity }, (_, index) => {
+      const position = saved[index];
+      const fallback = defaultSocketPosition(wall, ordinal++);
+      return {
+        left: Number.isFinite(Number(position?.left)) ? Math.max(0, Number(position.left)) : fallback.left,
+        floor: Number.isFinite(Number(position?.floor)) ? Math.max(0, Number(position.floor)) : fallback.floor
+      };
+    });
+  }
+  wall.socketPositions = next;
+  return next;
+}
+
+const shortSocketName = (name, id) => name?.match(/тип\s*\d+/i)?.[0] || name || id;
+
 export function wallDrawing(wall, priceById) {
   const width = Math.max(1, Number(wall.width));
   const height = Math.max(1, Number(wall.height));
@@ -10,13 +40,14 @@ export function wallDrawing(wall, priceById) {
   const socketsByType = Object.entries(wall.extras || {}).filter(([id, quantity]) =>
     id.startsWith('socket_type_') && Math.max(0, Math.floor(Number(quantity) || 0)) > 0
   );
-  const socketCount = socketsByType.reduce((sum, [, quantity]) => sum + Math.max(0, Math.floor(Number(quantity) || 0)), 0);
-  // Keep the schematic readable for unusually large saved quantities; the legend
-  // still displays the complete count.
-  const visibleSocketCount = Math.min(socketCount, 24);
-  const sockets = Array.from({ length: visibleSocketCount }, (_, index) =>
-    `<span class="drawing-socket" title="Подрозетник ${index + 1}" aria-hidden="true"></span>`
-  ).join('');
+  const socketCount = socketsByType.reduce((sum, [, quantity]) => sum + socketQuantity(quantity), 0);
+  const positions = syncSocketPositions(wall, socketsByType.map(([id]) => id));
+  const sockets = socketsByType.flatMap(([id]) => positions[id].map((position, index) => {
+    const name = priceById[id]?.name || id;
+    const left = Math.min(100, position.left / width * 100);
+    const bottom = Math.min(100, position.floor / height * 100);
+    return `<span class="drawing-socket" style="left:${left}%;bottom:${bottom}%" title="${name} ${index + 1}: слева ${position.left} мм, от пола ${position.floor} мм"><small>${shortSocketName(name, id)}</small></span>`;
+  })).join('');
   return `<section class="drawing-card" aria-label="Схема стены">
     <div class="drawing" style="--w:${boxWidth}px;--h:${boxHeight}px">
       <span class="dimension top-dim">${width.toLocaleString('ru-RU')} мм</span>
