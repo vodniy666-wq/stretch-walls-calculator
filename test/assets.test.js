@@ -41,6 +41,15 @@ test('main banner has a compact mobile layout', async () => {
   assert.match(mobileTheme, /\.lead\{margin-top:11px;font-size:12px;/);
 });
 
+test('room and wall counts use neutral labels without declension', async () => {
+  const app = await readFile(new URL('../js/app.js', import.meta.url), 'utf8');
+
+  assert.match(app, /Количество комнат: \$\{project\.rooms\.length\}/);
+  assert.match(app, /Количество стен: \$\{room\.walls\.length\} · \$\{square\(totals\.area\)\}/);
+  assert.doesNotMatch(app, /\$\{room\.walls\.length\} стен/);
+  assert.doesNotMatch(app, /\$\{project\.rooms\.length\} комн\./);
+});
+
 test('wall drawing follows the socket section in the editor', async () => {
   const app = await readFile(new URL('../js/app.js', import.meta.url), 'utf8');
   const sockets = app.indexOf("sectionTitle('04', 'Подрозетники / закладные'");
