@@ -10,6 +10,7 @@ export const makeWall = (number) => ({
   material: 'material_stretch_wall',
   profiles: { top: 'profile_basic', bottom: 'profile_basic', left: 'profile_basic', right: 'profile_basic' },
   extras: {},
+  socketPositions: {},
   soundproof: { id: '', custom: false, area: 0 }
 });
 export const makeRoom = (number) => ({ id: uid(), name: `Комната ${number}`, walls: [] });
