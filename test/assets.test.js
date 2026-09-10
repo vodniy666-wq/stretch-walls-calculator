@@ -63,6 +63,18 @@ test('wall input events synchronize data without rebuilding the active form', as
   assert.match(inputHandler, /persist\(\)/);
   assert.match(inputHandler, /updateWallDependents\(wall\)/);
   assert.doesNotMatch(inputHandler, /renderWall|app\.innerHTML|setSelectionRange|focus\(/);
+  assert.doesNotMatch(inputHandler, /\.value\s*=/);
+});
+
+test('editable wall numbers use native text editing and suitable virtual keyboards', async () => {
+  const app = await readFile(new URL('../js/app.js', import.meta.url), 'utf8');
+  const wallEditor = app.slice(app.indexOf('function counter'), app.indexOf('function empty'));
+
+  assert.doesNotMatch(wallEditor, /type="number"/);
+  assert.match(wallEditor, /name="width" type="text" inputmode="numeric" data-numeric data-min="1"/);
+  assert.match(wallEditor, /name="height" type="text" inputmode="numeric" data-numeric data-min="1"/);
+  assert.match(wallEditor, /socket-position-[^"`]+" type="text" inputmode="numeric" data-numeric data-min="0"/);
+  assert.match(wallEditor, /name="sound-area" type="text" inputmode="decimal" data-numeric data-min="0"/);
 });
 
 test('wall form fields explicitly use left-to-right input direction', async () => {

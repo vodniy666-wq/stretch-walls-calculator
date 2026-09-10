@@ -1,6 +1,7 @@
 import { money, square, wallTotals, roomTotals, projectTotals, projectEstimate } from './calculator.js';
 import { loadProjects, saveProjects, makeProject, makeRoom, makeWall, uid } from './store.js';
 import { syncSocketPositions, wallDrawing } from './drawing.js';
+import { normalizeNumericInput, parseNumericInput } from './numeric-input.js';
 
 const app = document.querySelector('#app');
 const saveButton = document.querySelector('#saveButton');
@@ -103,10 +104,10 @@ function renderRoom(project, room) {
 
 const profileOptions = (selected) => `<option value="">Без профиля</option>${prices.filter(p => p.category === 'profile').map(p => `<option value="${p.id}" ${selected === p.id ? 'selected' : ''}>${esc(p.name)} · ${money(p.price)}/м</option>`).join('')}`;
 const soundproofOptions = (selected) => `<option value="">Без звукоизоляции</option>${prices.filter(p => p.category === 'soundproof').map(p => `<option value="${p.id}" ${selected === p.id ? 'selected' : ''}>${esc(p.name)} · ${money(p.price)}/м²</option>`).join('')}`;
-function counter(item, value) { return `<div class="counter-row"><div><b>${esc(item.name)}</b><small>${money(item.price)} / ${esc(item.unit)}</small></div><div class="counter"><button type="button" data-count="${item.id}" data-step="-1">−</button><input aria-label="${esc(item.name)}" name="${item.id}" type="number" min="0" value="${value || 0}"><button type="button" data-count="${item.id}" data-step="1">＋</button></div></div>`; }
+function counter(item, value) { return `<div class="counter-row"><div><b>${esc(item.name)}</b><small>${money(item.price)} / ${esc(item.unit)}</small></div><div class="counter"><button type="button" data-count="${item.id}" data-step="-1">−</button><input aria-label="${esc(item.name)}" name="${item.id}" type="text" inputmode="numeric" data-numeric data-min="0" value="${value || 0}"><button type="button" data-count="${item.id}" data-step="1">＋</button></div></div>`; }
 
 function socketPositionFields(wall, item) {
-  return `<div data-socket-positions="${item.id}">${(wall.socketPositions?.[item.id] || []).map((position, index) => `<fieldset class="socket-position"><legend>${esc(item.name)} · ${index + 1}</legend><div class="two-columns"><label>От левого края, мм<input aria-label="${esc(item.name)} ${index + 1}, от левого края" name="socket-position-${item.id}-${index}-left" type="number" inputmode="numeric" min="0" value="${position.left}"></label><label>От пола, мм<input aria-label="${esc(item.name)} ${index + 1}, от пола" name="socket-position-${item.id}-${index}-floor" type="number" inputmode="numeric" min="0" value="${position.floor}"></label></div></fieldset>`).join('')}</div>`;
+  return `<div data-socket-positions="${item.id}">${(wall.socketPositions?.[item.id] || []).map((position, index) => `<fieldset class="socket-position"><legend>${esc(item.name)} · ${index + 1}</legend><div class="two-columns"><label>От левого края, мм<input aria-label="${esc(item.name)} ${index + 1}, от левого края" name="socket-position-${item.id}-${index}-left" type="text" inputmode="numeric" data-numeric data-min="0" value="${position.left}"></label><label>От пола, мм<input aria-label="${esc(item.name)} ${index + 1}, от пола" name="socket-position-${item.id}-${index}-floor" type="text" inputmode="numeric" data-numeric data-min="0" value="${position.floor}"></label></div></fieldset>`).join('')}</div>`;
 }
 
 function renderWall(project, room, wall) {
@@ -122,12 +123,12 @@ function renderWall(project, room, wall) {
   const selectedSoundproof = wall.soundproof?.id || (wall.soundproof?.enabled ? 'soundproof_heavy_felt' : '');
   const sectionTitle = (number, title, hint) => `<div class="editor-title"><span>${number}</span><div><h2>${title}</h2>${hint ? `<p>${hint}</p>` : ''}</div></div>`;
   app.innerHTML = page(room.name, wall.name, `<form id="wallForm">
-    <section class="editor-card">${sectionTitle('01', 'Размеры стены', 'Площадь рассчитывается автоматически')}<label>Название стены<input name="name" value="${esc(wall.name)}"></label><div class="two-columns"><label>Ширина, мм<input name="width" type="number" inputmode="numeric" min="1" value="${wall.width}"></label><label>Высота, мм<input name="height" type="number" inputmode="numeric" min="1" value="${wall.height}"></label></div></section>
+    <section class="editor-card">${sectionTitle('01', 'Размеры стены', 'Площадь рассчитывается автоматически')}<label>Название стены<input name="name" value="${esc(wall.name)}"></label><div class="two-columns"><label>Ширина, мм<input name="width" type="text" inputmode="numeric" data-numeric data-min="1" value="${wall.width}"></label><label>Высота, мм<input name="height" type="text" inputmode="numeric" data-numeric data-min="1" value="${wall.height}"></label></div></section>
     <section class="editor-card">${sectionTitle('02', 'Материал')}<input type="hidden" name="material" value="${esc(wall.material)}"><div class="material-summary"><div><b>${esc(material?.name || 'Материал не выбран')}</b><small data-wall-material-area>${square(totals.area)} · ${material ? `${money(material.price)} / м²` : 'нет цены'}</small></div><strong data-wall-material-total>${money(totals.material)}</strong></div></section>
     <section class="editor-card">${sectionTitle('03', 'Профили', 'Отдельно для каждой стороны')}<div class="profile-grid">${[['top','Верх'],['bottom','Низ'],['left','Слева'],['right','Справа']].map(([id,label]) => `<label>${label}<small data-profile-length="${id}">${id === 'top' || id === 'bottom' ? (wall.width/1000).toLocaleString('ru-RU') : (wall.height/1000).toLocaleString('ru-RU')} м</small><select name="profile-${id}">${profileOptions(wall.profiles?.[id])}</select></label>`).join('')}</div></section>
     <section class="editor-card">${sectionTitle('04', 'Подрозетники / закладные', 'Количество и положение каждого экземпляра')}<div class="compact-counters">${socketItems.map(item => `${counter(item, wall.extras?.[item.id])}${socketPositionFields(wall, item)}`).join('')}</div></section>
     <section class="editor-card">${sectionTitle('05', 'Чертёж', 'Схематичный вид стены спереди')}<div data-wall-drawing>${wallDrawing(wall, priceById)}</div></section>
-    <section class="editor-card">${sectionTitle('06', 'Звукоизоляция')}<div class="sound-row"><label>Тип звукоизоляции<small data-sound-summary>${selectedSoundproof ? `${square(totals.soundArea)} · ${money(totals.soundproof)}` : 'Не выбрана'}</small><select name="soundproof">${soundproofOptions(selectedSoundproof)}</select></label><div class="sound-options ${selectedSoundproof ? '' : 'hidden'}"><label class="check"><input name="sound-custom" type="checkbox" ${wall.soundproof?.custom ? 'checked' : ''}> Указать площадь вручную</label><label class="sound-area ${wall.soundproof?.custom ? '' : 'hidden'}">Площадь, м²<input name="sound-area" type="number" min="0" step="0.01" value="${wall.soundproof?.area || totals.area.toFixed(2)}"></label></div></div></section>
+    <section class="editor-card">${sectionTitle('06', 'Звукоизоляция')}<div class="sound-row"><label>Тип звукоизоляции<small data-sound-summary>${selectedSoundproof ? `${square(totals.soundArea)} · ${money(totals.soundproof)}` : 'Не выбрана'}</small><select name="soundproof">${soundproofOptions(selectedSoundproof)}</select></label><div class="sound-options ${selectedSoundproof ? '' : 'hidden'}"><label class="check"><input name="sound-custom" type="checkbox" ${wall.soundproof?.custom ? 'checked' : ''}> Указать площадь вручную</label><label class="sound-area ${wall.soundproof?.custom ? '' : 'hidden'}">Площадь, м²<input name="sound-area" type="text" inputmode="decimal" data-numeric data-min="0" value="${wall.soundproof?.area || totals.area.toFixed(2)}"></label></div></div></section>
     <details class="editor-card consumables" id="consumablesBlock"><summary><div>${sectionTitle('07', 'Дополнительные расходники', 'Клей, лента и крепёж')}</div><span class="details-arrow">⌄</span></summary>${activeConsumables.length ? `<div class="active-consumables" aria-label="Выбранные расходники">${activeConsumables.map(item => `<span>${esc(item.name)}: <b>${Number(wall.extras[item.id]).toLocaleString('ru-RU')}</b></span>`).join('')}</div>` : '<p class="no-consumables">Ничего не добавлено</p>'}<div class="consumable-rows">${consumables.map(item => counter(item, wall.extras?.[item.id])).join('')}</div></details>
     <section class="wall-total"><div><small>Итог стоимости стены</small><b data-wall-total>${money(totals.total)}</b><span data-wall-area>${square(totals.area)}</span></div><button type="button" class="primary" data-action="done-wall">Готово</button></section>
   </form>`, `project/${project.id}/${room.id}`);
@@ -174,35 +175,36 @@ app.addEventListener('click', event => {
   if (action === 'delete-room' && confirm(`Удалить «${room.name}» со всеми стенами?`)) { project.rooms = project.rooms.filter(r => r.id !== room.id); persist('Комната удалена'); return go(`project/${project.id}`); }
   if (action === 'delete-wall') { const item = room.walls.find(w => w.id === target.dataset.id); if (confirm(`Удалить «${item.name}»?`)) { room.walls = room.walls.filter(w => w.id !== item.id); persist('Стена удалена'); render(); } return; }
   if (action === 'edit-project') { const name = prompt('Название объекта', project.name); if (name?.trim()) { project.name = name.trim(); persist(); render(); } return; }
-  if (action === 'done-wall') { syncWallForm(wall); persist('Стена сохранена'); return go(`project/${project.id}/${room.id}`); }
+  if (action === 'done-wall') { syncWallForm(wall, true); persist('Стена сохранена'); return go(`project/${project.id}/${room.id}`); }
   if (action === 'copy-project') { const original = findProject(target.dataset.id); const copy = structuredClone(original); copy.id = uid(); copy.name += ' — копия'; copy.updatedAt = new Date().toISOString(); projects.unshift(copy); saveProjects(projects); showToast('Копия создана'); return render(); }
   if (action === 'delete-project') { const item = findProject(target.dataset.id); if (confirm(`Удалить расчёт «${item.name}»?`)) { projects = projects.filter(p => p.id !== item.id); saveProjects(projects); render(); } return; }
   if (target.dataset.count) {
     const input = app.querySelector(`[name="${target.dataset.count}"]`);
-    input.value = Math.max(0, Number(input.value) + Number(target.dataset.step));
+    input.value = Math.max(0, parseNumericInput(input.value) + Number(target.dataset.step));
     input.dispatchEvent(new Event('input', { bubbles: true }));
     updateWallStructure(input);
   }
 });
 
-function syncWallForm(wall) {
+function syncWallForm(wall, finalize = false) {
   const form = document.querySelector('#wallForm'); if (!form) return;
+  if (finalize) for (const input of form.querySelectorAll('input[data-numeric]')) normalizeNumericInput(input);
   const data = new FormData(form);
-  wall.name = String(data.get('name')).trim() || 'Стена'; wall.width = Math.max(1, Number(data.get('width')) || 1); wall.height = Math.max(1, Number(data.get('height')) || 1);
+  wall.name = String(data.get('name')).trim() || 'Стена'; wall.width = Math.max(0, parseNumericInput(data.get('width'))); wall.height = Math.max(0, parseNumericInput(data.get('height')));
   wall.material = data.get('material') || '';
   wall.profiles ||= {};
   for (const side of ['top','bottom','left','right']) wall.profiles[side] = data.get(`profile-${side}`) || '';
   wall.extras ||= {};
-  for (const item of prices.filter(item => item.category === 'extra')) wall.extras[item.id] = Math.max(0, Number(data.get(item.id)) || 0);
+  for (const item of prices.filter(item => item.category === 'extra')) wall.extras[item.id] = Math.max(0, parseNumericInput(data.get(item.id)));
   const socketIds = prices.filter(item => item.category === 'extra' && item.id.startsWith('socket_')).map(item => item.id);
   syncSocketPositions(wall, socketIds);
   for (const id of socketIds) for (const [index, position] of (wall.socketPositions[id] || []).entries()) {
     const leftName = `socket-position-${id}-${index}-left`;
     const floorName = `socket-position-${id}-${index}-floor`;
-    if (data.has(leftName)) position.left = Math.max(0, Number(data.get(leftName)) || 0);
-    if (data.has(floorName)) position.floor = Math.max(0, Number(data.get(floorName)) || 0);
+    if (data.has(leftName)) position.left = Math.max(0, parseNumericInput(data.get(leftName)));
+    if (data.has(floorName)) position.floor = Math.max(0, parseNumericInput(data.get(floorName)));
   }
-  wall.soundproof = { id: data.get('soundproof') || '', custom: data.has('sound-custom'), area: Math.max(0, Number(data.get('sound-area')) || 0) };
+  wall.soundproof = { id: data.get('soundproof') || '', custom: data.has('sound-custom'), area: Math.max(0, parseNumericInput(data.get('sound-area'))) };
 }
 function syncWallInput(event) {
   if (!event.target.closest('#wallForm')) return;
@@ -215,6 +217,7 @@ function syncWallInput(event) {
 function commitWallInput(event) {
   if (!event.target.closest('#wallForm')) return;
   const { wall } = getContext();
+  normalizeNumericInput(event.target);
   syncWallForm(wall);
   persist();
   updateWallDependents(wall);
