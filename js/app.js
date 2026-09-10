@@ -9,6 +9,7 @@ let prices = [];
 let priceById = {};
 let projects = loadProjects();
 let current = null;
+let wallRenderTimer = null;
 
 function migrateLegacyWalls() {
   let changed = false;
@@ -176,7 +177,16 @@ app.addEventListener('click', event => {
   if (action === 'done-wall') { syncWallForm(wall); persist('Стена сохранена'); return go(`project/${project.id}/${room.id}`); }
   if (action === 'copy-project') { const original = findProject(target.dataset.id); const copy = structuredClone(original); copy.id = uid(); copy.name += ' — копия'; copy.updatedAt = new Date().toISOString(); projects.unshift(copy); saveProjects(projects); showToast('Копия создана'); return render(); }
   if (action === 'delete-project') { const item = findProject(target.dataset.id); if (confirm(`Удалить расчёт «${item.name}»?`)) { projects = projects.filter(p => p.id !== item.id); saveProjects(projects); render(); } return; }
-  if (target.dataset.count) { const input = app.querySelector(`[name="${target.dataset.count}"]`); input.value = Math.max(0, Number(input.value) + Number(target.dataset.step)); input.dispatchEvent(new Event('input', { bubbles: true })); }
+  if (target.dataset.count) {
+    const input = app.querySelector(`[name="${target.dataset.count}"]`);
+    const consumablesOpen = Boolean(app.querySelector('#consumablesBlock')?.open);
+    input.value = Math.max(0, Number(input.value) + Number(target.dataset.step));
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    const context = getContext();
+    clearTimeout(wallRenderTimer);
+    renderWall(context.project, context.room, context.wall);
+    if (consumablesOpen) app.querySelector('#consumablesBlock')?.setAttribute('open', '');
+  }
 });
 
 function syncWallForm(wall) {
@@ -198,13 +208,30 @@ function syncWallForm(wall) {
   }
   wall.soundproof = { id: data.get('soundproof') || '', custom: data.has('sound-custom'), area: Math.max(0, Number(data.get('sound-area')) || 0) };
 }
-app.addEventListener('input', event => {
+function syncWallInput(event) {
   if (!event.target.closest('#wallForm')) return;
+  const { wall } = getContext();
+  syncWallForm(wall);
+  persist();
+}
+
+function commitWallInput(event) {
+  if (!event.target.closest('#wallForm')) return;
+  const context = getContext();
+  syncWallForm(context.wall);
+  persist();
   const consumablesOpen = Boolean(app.querySelector('#consumablesBlock')?.open);
-  const { wall } = getContext(); syncWallForm(wall); persist(); renderWall(getContext().project, getContext().room, wall);
-  if (consumablesOpen) app.querySelector('#consumablesBlock')?.setAttribute('open', '');
-  const focus = app.querySelector(`[name="${event.target.name}"]`); focus?.focus(); if (focus?.setSelectionRange) focus.setSelectionRange(focus.value.length, focus.value.length);
-});
+  clearTimeout(wallRenderTimer);
+  wallRenderTimer = setTimeout(() => {
+    const latest = getContext();
+    if (latest.wall !== context.wall) return;
+    renderWall(latest.project, latest.room, latest.wall);
+    if (consumablesOpen) app.querySelector('#consumablesBlock')?.setAttribute('open', '');
+  }, 0);
+}
+
+app.addEventListener('input', syncWallInput);
+app.addEventListener('change', commitWallInput);
 document.body.addEventListener('click', event => { const nav = event.target.closest('[data-go]'); if (nav && !nav.closest('#app')) go(nav.dataset.go); });
 saveButton.addEventListener('click', () => persist('Расчёт сохранён'));
 window.addEventListener('hashchange', render);
