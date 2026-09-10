@@ -65,7 +65,7 @@ const page = (eyebrow, title, content, back = '') => `<div class="page">
 
 function renderHome() {
   current = null; saveButton.classList.add('hidden');
-  app.innerHTML = `<section class="hero"><div><p class="eyebrow">Калькулятор натяжных стен</p><h1>Смета без<br><em>лишних движений</em></h1><p class="lead">Комнаты, стены и материалы — в понятном расчёте, который всегда под рукой.</p></div><button class="primary hero-action" data-action="new">＋ Новый расчёт</button></section>
+  app.innerHTML = `<section class="hero"><div><p class="eyebrow">Калькулятор натяжных стен</p><h1>Смета без<br><em>лишних движений</em></h1><p class="lead">Комнаты, стены и материалы — в понятном расчёте, который всегда под рукой.</p></div></section>
   <section class="home-grid"><button class="menu-card" data-action="new"><span class="menu-icon accent">＋</span><span><b>Новый расчёт</b><small>Создать объект с нуля</small></span><i>→</i></button><button class="menu-card" data-go="saved"><span class="menu-icon">▤</span><span><b>Сохранённые</b><small>${projects.length} ${projects.length === 1 ? 'расчёт' : 'расчётов'}</small></span><i>→</i></button><button class="menu-card" data-go="price"><span class="menu-icon">₽</span><span><b>Прайс</b><small>${prices.length} позиций</small></span><i>→</i></button></section>`;
 }
 
