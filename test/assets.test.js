@@ -43,6 +43,20 @@ test('main banner has a compact mobile layout', async () => {
   assert.match(mobileTheme, /\.lead\{margin-top:11px;font-size:12px;/);
 });
 
+test('price rows reserve a non-wrapping price column on mobile only', async () => {
+  const css = await readFile(new URL('../styles.css', import.meta.url), 'utf8');
+  const desktopPriceRow = css.slice(css.indexOf('.price-row{'), css.indexOf('@media(max-width:700px)'));
+  const mobilePriceRow = css.slice(css.lastIndexOf('@media(max-width:700px)'), css.indexOf('@media(max-width:360px)'));
+  const narrowPriceRow = css.slice(css.indexOf('@media(max-width:360px)'));
+
+  assert.doesNotMatch(desktopPriceRow, /grid-template-columns/);
+  assert.match(mobilePriceRow, /\.price-row\{display:grid;grid-template-columns:minmax\(0,1fr\) max-content;align-items:start;gap:14px\}/);
+  assert.match(mobilePriceRow, /\.price-row span\{min-width:0;overflow-wrap:break-word\}/);
+  assert.match(mobilePriceRow, /\.price-row>b\{justify-self:end;white-space:nowrap\}/);
+  assert.match(narrowPriceRow, /\.price-row\{grid-template-columns:minmax\(0,1fr\)\}/);
+  assert.match(narrowPriceRow, /\.price-row>b\{grid-column:1;justify-self:end\}/);
+});
+
 test('room and wall counts use neutral labels without declension', async () => {
   const app = await readFile(new URL('../js/app.js', import.meta.url), 'utf8');
 
