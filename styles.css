@@ -50,8 +50,8 @@ input:focus,textarea:focus,select:focus{border-color:#c4a96f;box-shadow:0 0 0 3p
 @media(max-width:700px){
   .topbar{height:54px;padding:0 16px}
   #app{padding-top:20px}
-  .hero{height:210px;min-height:0;padding:18px;border-radius:22px;align-items:center;justify-content:flex-start;background-image:linear-gradient(90deg,rgba(255,252,245,.97) 0%,rgba(255,250,239,.9) 43%,rgba(247,237,216,.48) 68%,rgba(242,229,202,.14) 100%),url('./assets/hero-wall.jpg');background-position:center,right center;background-size:cover,cover;background-repeat:no-repeat}
-  .hero>div{width:72%;max-height:174px}
+  .hero{height:210px;min-height:0;padding:20px 22px;border-radius:22px;flex-direction:row;align-items:center;justify-content:flex-start;text-align:left;background-image:linear-gradient(90deg,rgba(255,252,245,.98) 0%,rgba(255,250,239,.91) 42%,rgba(247,237,216,.45) 66%,rgba(242,229,202,.1) 100%),url('./assets/hero-wall.jpg');background-position:center,right center;background-size:cover,cover;background-repeat:no-repeat}
+  .hero>div{width:68%;max-height:170px;margin:0;text-align:left}
   .hero .eyebrow{margin-bottom:7px;font-size:10px}
   .hero h1{font-size:28px;line-height:1.02}
   .hero+.page,.hero+.home-grid{margin-top:18px}

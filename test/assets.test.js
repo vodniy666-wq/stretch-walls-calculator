@@ -35,7 +35,9 @@ test('main banner has a compact mobile layout', async () => {
   const css = await readFile(new URL('../styles.css', import.meta.url), 'utf8');
   const mobileTheme = css.slice(css.lastIndexOf('@media(max-width:700px)'));
 
-  assert.match(mobileTheme, /\.hero\{height:210px;min-height:0;/);
+  assert.match(mobileTheme, /\.hero\{height:210px;min-height:0;padding:20px 22px;/);
+  assert.match(mobileTheme, /flex-direction:row;align-items:center;justify-content:flex-start;text-align:left/);
+  assert.match(mobileTheme, /\.hero>div\{width:68%;max-height:170px;margin:0;text-align:left\}/);
   assert.match(mobileTheme, /\.hero h1\{font-size:28px;/);
   assert.match(mobileTheme, /\.hero\+\.page,\.hero\+\.home-grid\{margin-top:18px\}/);
   assert.match(mobileTheme, /\.lead\{margin-top:11px;font-size:12px;/);
