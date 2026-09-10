@@ -61,7 +61,7 @@ const persist = (message) => {
   if (message) showToast(message);
 };
 const heroBanner = () => `<section class="hero"><div><p class="eyebrow">Калькулятор натяжных стен</p><h1>Смета без<br><em>лишних движений</em></h1><p class="lead">Комнаты, стены и материалы — в понятном расчёте, который всегда под рукой.</p></div></section>`;
-const page = (eyebrow, title, content, back = '') => `${heroBanner()}<div class="page">
+const page = (eyebrow, title, content, back = '') => `<div class="page">
   <div class="page-heading">${back ? `<button class="back" data-go="${back}">←</button>` : ''}<div><p class="eyebrow">${eyebrow}</p><h1>${esc(title)}</h1></div></div>${content}</div>`;
 
 function renderHome() {
@@ -72,7 +72,7 @@ function renderHome() {
 
 function renderNew() {
   saveButton.classList.add('hidden');
-  app.innerHTML = page('Новый расчёт', 'Расскажите об объекте', `<form id="newForm" class="form-card"><label>Название объекта <span>*</span><input name="name" required autofocus placeholder="Например, квартира на Лесной"></label><div class="two-columns"><label>Имя клиента<input name="client" placeholder="Необязательно"></label><label>Телефон<input name="phone" inputmode="tel" placeholder="+7 999 000-00-00"></label></div><label>Комментарий<textarea name="comment" rows="3" placeholder="Особенности объекта"></textarea></label><button class="primary wide" type="submit">Создать расчёт <span>→</span></button></form>`, 'home');
+  app.innerHTML = `${heroBanner()}${page('Новый расчёт', 'Расскажите об объекте', `<form id="newForm" class="form-card"><label>Название объекта <span>*</span><input name="name" required autofocus placeholder="Например, квартира на Лесной"></label><div class="two-columns"><label>Имя клиента<input name="client" placeholder="Необязательно"></label><label>Телефон<input name="phone" inputmode="tel" placeholder="+7 999 000-00-00"></label></div><label>Комментарий<textarea name="comment" rows="3" placeholder="Особенности объекта"></textarea></label><button class="primary wide" type="submit">Создать расчёт <span>→</span></button></form>`, 'home')}`;
 }
 
 function roomCard(project, room) {
@@ -136,12 +136,12 @@ function renderWall(project, room, wall) {
 function empty(title, text) { return `<div class="empty"><span>＋</span><h2>${title}</h2><p>${text}</p></div>`; }
 function renderSaved() {
   current = null; saveButton.classList.add('hidden');
-  app.innerHTML = page('Ваши проекты', 'Сохранённые расчёты', `<div class="saved-head"><p>${projects.length ? 'Все изменения сохранены на этом устройстве.' : 'Сохранённых расчётов пока нет.'}</p><button class="primary" data-action="new">＋ Новый</button></div><div class="card-list">${projects.map(project => { const totals = projectTotals(project, priceById); return `<article class="saved-card"><div class="clickable" data-go="project/${project.id}"><p>${new Date(project.updatedAt).toLocaleDateString('ru-RU')}</p><h2>${esc(project.name)}</h2><span>${project.rooms.length} комн. · ${square(totals.area)}</span><strong>${money(totals.total)}</strong></div><div class="card-actions"><button data-action="copy-project" data-id="${project.id}">Создать копию</button><button class="danger" data-action="delete-project" data-id="${project.id}">Удалить</button></div></article>`; }).join('')}</div>`, 'home');
+  app.innerHTML = `${heroBanner()}${page('Ваши проекты', 'Сохранённые расчёты', `<div class="saved-head"><p>${projects.length ? 'Все изменения сохранены на этом устройстве.' : 'Сохранённых расчётов пока нет.'}</p><button class="primary" data-action="new">＋ Новый</button></div><div class="card-list">${projects.map(project => { const totals = projectTotals(project, priceById); return `<article class="saved-card"><div class="clickable" data-go="project/${project.id}"><p>${new Date(project.updatedAt).toLocaleDateString('ru-RU')}</p><h2>${esc(project.name)}</h2><span>${project.rooms.length} комн. · ${square(totals.area)}</span><strong>${money(totals.total)}</strong></div><div class="card-actions"><button data-action="copy-project" data-id="${project.id}">Создать копию</button><button class="danger" data-action="delete-project" data-id="${project.id}">Удалить</button></div></article>`; }).join('')}</div>`, 'home')}`;
 }
 function renderPrice() {
   current = null; saveButton.classList.add('hidden');
   const names = { material: 'Материал', profile: 'Профили', extra: 'Дополнительные элементы', soundproof: 'Звукоизоляция' };
-  app.innerHTML = page('Материалы и работы', 'Прайс', `<p class="intro">Цены используются во всех расчётах автоматически.</p>${Object.entries(names).map(([category,name]) => `<section class="price-section"><h2>${name}</h2>${prices.filter(p => p.category === category).map(p => `<div class="price-row"><span>${esc(p.name)}<small>за ${p.unit}</small></span><b>${money(p.price)}</b></div>`).join('')}</section>`).join('')}`, 'home');
+  app.innerHTML = `${heroBanner()}${page('Материалы и работы', 'Прайс', `<p class="intro">Цены используются во всех расчётах автоматически.</p>${Object.entries(names).map(([category,name]) => `<section class="price-section"><h2>${name}</h2>${prices.filter(p => p.category === category).map(p => `<div class="price-row"><span>${esc(p.name)}<small>за ${p.unit}</small></span><b>${money(p.price)}</b></div>`).join('')}</section>`).join('')}`, 'home')}`;
 }
 
 function render() {
