@@ -22,8 +22,8 @@ body{background:linear-gradient(180deg,#fbf8f2 0,var(--paper) 45%,#f4ede2 100%)}
 .icon-button:hover,.secondary:hover,.back:hover{border-color:#d9c7aa;background:#fffaf1;transform:translateY(-1px)}
 .hero{isolation:isolate;min-height:410px;align-items:flex-end;color:var(--ink);background-image:linear-gradient(90deg,rgba(255,252,245,.99) 0%,rgba(255,250,239,.94) 42%,rgba(247,237,216,.62) 68%,rgba(242,229,202,.42) 100%),url('./assets/hero-wall.jpg');background-position:center,right center;background-size:cover,cover;background-repeat:no-repeat;border:1px solid rgba(226,211,188,.86);box-shadow:0 22px 55px rgba(91,73,49,.1)}
 .hero:after{inset:0;width:auto;height:auto;border:0;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(232,204,131,.1));z-index:-1;pointer-events:none}
-.hero>div{position:relative;z-index:1}
-.hero+.page{margin-top:48px}
+.hero>div{position:relative;z-index:1}.lead-mobile{display:none}
+.hero+.page,.hero+.home-grid{margin-top:48px}
 .hero .eyebrow{color:#8b7552}
 .hero h1 em{color:#94753e}
 .lead{color:#71695f}
@@ -50,8 +50,11 @@ input:focus,textarea:focus,select:focus{border-color:#c4a96f;box-shadow:0 0 0 3p
 @media(max-width:700px){
   .topbar{height:54px;padding:0 16px}
   #app{padding-top:20px}
-  .hero{min-height:470px;padding:30px 23px;background-image:linear-gradient(180deg,rgba(255,252,245,.83) 0%,rgba(255,250,240,.87) 38%,rgba(255,250,240,.98) 76%),url('./assets/hero-wall.jpg');background-position:center,right top;background-size:cover,auto 72%;background-repeat:no-repeat}
-  .hero h1{font-size:40px}
-  .hero+.page{margin-top:30px}
-  .lead{margin-top:18px}
+  .hero{height:210px;min-height:0;padding:18px;border-radius:22px;align-items:center;justify-content:flex-start;background-image:linear-gradient(90deg,rgba(255,252,245,.97) 0%,rgba(255,250,239,.9) 43%,rgba(247,237,216,.48) 68%,rgba(242,229,202,.14) 100%),url('./assets/hero-wall.jpg');background-position:center,right center;background-size:cover,cover;background-repeat:no-repeat}
+  .hero>div{width:72%;max-height:174px}
+  .hero .eyebrow{margin-bottom:7px;font-size:10px}
+  .hero h1{font-size:28px;line-height:1.02}
+  .hero+.page,.hero+.home-grid{margin-top:18px}
+  .lead{margin-top:11px;font-size:12px;line-height:1.4}
+  .lead-desktop{display:none}.lead-mobile{display:inline}
 }
