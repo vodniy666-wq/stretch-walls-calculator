@@ -15,6 +15,24 @@ test('gets profile names from the supplied price data', () => {
   assert.match(drawing, /Низ · Без профиля/);
 });
 
+test('uses profile colors from the price data on the drawing and in its legend', () => {
+  const wall = {
+    width: 4200,
+    height: 2700,
+    profiles: { top: 'profile_blue', bottom: 'profile_orange', left: '', right: 'profile_blue' }
+  };
+  const drawing = wallDrawing(wall, {
+    profile_blue: { name: 'Синий профиль', color: '#246BCE' },
+    profile_orange: { name: 'Оранжевый профиль', color: '#D97706' }
+  });
+
+  assert.match(drawing, /class="line top" style="--profile-color:#246BCE"/);
+  assert.match(drawing, /class="line bottom" style="--profile-color:#D97706"/);
+  assert.match(drawing, /class="line none left" style="--profile-color:#cbd1ca"/);
+  assert.equal((drawing.match(/--profile-color:#246BCE/g) || []).length, 4);
+  assert.equal((drawing.match(/class="profile-swatch"/g) || []).length, 4);
+});
+
 test('shows each saved socket type using its price name', () => {
   const drawing = wallDrawing({
     width: 3000,

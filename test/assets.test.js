@@ -24,3 +24,12 @@ test('wall drawing follows the socket section in the editor', async () => {
   assert.ok(drawing > sockets);
   assert.ok(soundproof > drawing);
 });
+
+test('every priced profile has its own valid drawing color', async () => {
+  const prices = JSON.parse(await readFile(new URL('../data/prices.json', import.meta.url), 'utf8'));
+  const profileColors = prices.filter(item => item.category === 'profile').map(item => item.color);
+
+  assert.ok(profileColors.length > 0);
+  assert.ok(profileColors.every(color => /^#[\da-f]{6}$/i.test(color)));
+  assert.equal(new Set(profileColors).size, profileColors.length);
+});
