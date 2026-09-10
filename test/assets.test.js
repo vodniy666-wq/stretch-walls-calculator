@@ -13,3 +13,14 @@ test('browser assets use repository-relative URLs', async () => {
   assert.match(app, /new URL\('\.\.\/data\/prices\.json', import\.meta\.url\)/);
   assert.doesNotMatch(html, /(?:href|src)="\//);
 });
+
+test('wall drawing follows the socket section in the editor', async () => {
+  const app = await readFile(new URL('../js/app.js', import.meta.url), 'utf8');
+  const sockets = app.indexOf("sectionTitle('04', 'Подрозетники / закладные'");
+  const drawing = app.indexOf("sectionTitle('05', 'Чертёж'");
+  const soundproof = app.indexOf("sectionTitle('06', 'Звукоизоляция'");
+
+  assert.ok(sockets >= 0);
+  assert.ok(drawing > sockets);
+  assert.ok(soundproof > drawing);
+});
